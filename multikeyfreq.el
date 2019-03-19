@@ -56,8 +56,8 @@
 ;;   post-command-hook to pre-command-hook
 ;;
 ;; Version 1.0 - 2007
-- Made into a full featured minor mode.  Added full doc
-  hash table. Added ability to set user preference using emacs's
+;; - Made into a full featured minor mode.  Added full doc
+;;   hash table. Added ability to set user preference using emacs's
 ;;   customization system. Code is ~400 lines. This version is made by
 ;;   Michal Nazarewicz in 2007.
 ;;
@@ -136,6 +136,12 @@ by default."
   :group 'multikeyfreq
   :type '(symbol))
 
+(defcustom multikeyfreq-excluded-pairs
+  '()
+  "List of pairs of commands excluded by multikeyfreq."
+  :group 'multikeyfreq
+  :type '('(symbol)))
+
 
 (defvar multikeyfreq-table (make-hash-table :test 'equal :size 1025)
   "Hash table storing number of times each command was called in each major mode
@@ -154,7 +160,9 @@ since the last time the frequencies were saved in `multikeyfreq-file'.")
       (when (and antecommand (symbolp antecommand))
         (setq count (gethash (list major-mode antecommand command)
                              multikeyfreq-table))
-        (if (memq command multikeyfreq-excluded-commands)
+        (if (or
+             (memq command multikeyfreq-excluded-commands)
+             (memq (list antecommand command) multikeyfreq-excluded-pairs))
             (setq multikeyfreq-real-last-last-command '())
           (when (not (eq antecommand command))
             (puthash (list major-mode antecommand command)
